@@ -1,5 +1,8 @@
 **Read in other languages: [Русский](README.md), [Polska](README.pl.md).**
 
+An application for searching images with keyword
+
+
 # React homework template
 
 Этот проект был создан при помощи
