@@ -1,3 +1,4 @@
+import { Component } from 'react';
 import styled from 'styled-components';
 
 const SearchbarHeader = styled.header`
@@ -83,23 +84,44 @@ const FormInput = styled.input`
   }
 `;
 
-const Searchbar = () => {
-  return (
-    <SearchbarHeader>
-      <SearchForm>
-        <SearchButton type="submit">
-          <Span>Search</Span>
-        </SearchButton>
+class Searchbar extends Component {
+  state = {
+    inputValue: '',
+  };
 
-        <FormInput
-          type="text"
-          autocomplete="off"
-          autoFocus
-          placeholder="Search images and photos"
-        />
-      </SearchForm>
-    </SearchbarHeader>
-  );
-};
+  handleSubmit = event => {
+    event.preventDefault();
+    if (this.state.inputValue.trim() === '') {
+      alert('Type something');
+      return;
+    }
+    this.props.onSubmit(this.state.inputValue);
+  };
+
+  handleInputChange = event => {
+    this.setState({ inputValue: event.currentTarget.value });
+  };
+
+  render() {
+    return (
+      <SearchbarHeader>
+        <SearchForm onSubmit={this.handleSubmit}>
+          <SearchButton type="submit">
+            o<Span>Search</Span>
+          </SearchButton>
+
+          <FormInput
+            type="text"
+            value={this.state.inputValue}
+            autocomplete="off"
+            autoFocus
+            placeholder="Search images and photos"
+            onChange={this.handleInputChange}
+          />
+        </SearchForm>
+      </SearchbarHeader>
+    );
+  }
+}
 
 export default Searchbar;
