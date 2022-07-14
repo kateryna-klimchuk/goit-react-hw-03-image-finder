@@ -1,11 +1,12 @@
 import Searchbar from 'components/Searchbar';
 import { Component } from 'react';
-// import axios from 'axios';
 
 import styled from 'styled-components';
 import ImageGallery from 'components/ImageGallery';
-// const API_KEY = '27448491-3edcbaaac83ebd1071ff4125b';
-// const BASE_URL = `https://pixabay.com/api/`;
+import Button from 'components/Button';
+import Modal from 'components/Modal';
+import { fetching } from 'components/services/api';
+
 const Container = styled.div`
   display: grid;
   grid-template-columns: 1fr;
@@ -13,29 +14,95 @@ const Container = styled.div`
   padding-bottom: 24px;
 `;
 
-class App extends Component {
+export class App extends Component {
   state = {
-    inputValue: '',
-    articles: [],
+    page: 1,
+    images: [],
+    largeImg: null,
+    isLoading: false,
+    query: '',
   };
-  // handleFetch = () => {
-  //   return fetch(
-  //     `${BASE_URL}?q=${this.state.searchValue}&page=1&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
-  //   )
-  //     .then(res => res.json)
-  //     .then(data => console.log(data));
-  // };
 
-  handleSetInputValue = value => {
-    this.setState({ inputValue: value });
+  imagesMapper = imageList => {
+    return imageList.map(({ id, webformatURL, largeImageURL, tags }) => {
+      return { id, webformatURL, largeImageURL, alt: tags };
+    });
+  };
+
+  async componentDidUpdate(_, prevState) {
+    const prevQuery = prevState.query;
+    const nextQuery = this.state.query;
+    const prevPage = prevState.page;
+    const nextPage = this.state.page;
+    const { query, page } = this.state;
+
+    if (prevQuery !== nextQuery) {
+      try {
+        this.setState({ isLoading: true, page: 1, images: [] });
+        const images = await fetching(query);
+        this.setState({
+          images: this.imagesMapper(images.data.hits),
+        });
+      } catch {
+        return alert("We're sorry, nothing is found");
+      } finally {
+        this.setState({ isLoading: false });
+      }
+    }
+
+    if (prevPage !== nextPage && nextPage !== 1) {
+      try {
+        this.setState({ isLoading: true });
+        const newImages = await fetching(query, page);
+        this.setState(prevState => ({
+          images: [
+            ...prevState.images,
+            ...this.imagesMapper(newImages.data.hits),
+          ],
+        }));
+      } catch {
+        return alert("We're sorry, nothing is found");
+      } finally {
+        this.setState({ isLoading: false });
+      }
+    }
+  }
+
+  handleSearch = query => {
+    this.setState({ query });
+  };
+
+  handleLoadMore = () => {
+    this.setState(({ page }) => ({ page: page + 1 }));
+  };
+
+  handleModal = largeImg => {
+    this.setState({ largeImg });
+  };
+
+  closeModal = () => {
+    this.setState({ largeImg: null });
   };
 
   render() {
+    const { images, isLoading, largeImg, query } = this.state;
     return (
       <Container>
-        <Searchbar onSubmit={this.handleSetInputValue} />
-        {this.state.inputValue && (
-          <ImageGallery value={this.state.inputValue} />
+        <Searchbar onSubmit={this.handleSearch} />
+
+        {/* {isLoading && <Loader />} */}
+        {images.length > 0 && (
+          <>
+            <ImageGallery
+              images={this.state.images}
+              onClick={this.handleModal}
+            />
+            <Button onClick={this.handleLoadMore} />
+          </>
+        )}
+
+        {largeImg && (
+          <Modal largeImg={largeImg} alt={query} closeModal={this.closeModal} />
         )}
       </Container>
     );

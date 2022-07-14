@@ -11,11 +11,11 @@ const ListItem = styled.img`
   }
 `;
 
-const ImageGalleryItem = ({ item, id }) => {
+const ImageGalleryItem = ({ large, small, alt, onClick }) => {
   return (
-    <>
-      <ListItem key={id} src={item} alt="image" />
-    </>
+    <li onClick={() => onClick(large)}>
+      <ListItem src={small} alt={alt} />
+    </li>
   );
 };
 

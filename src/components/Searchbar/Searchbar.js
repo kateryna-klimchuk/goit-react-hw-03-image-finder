@@ -1,6 +1,6 @@
 import { Component } from 'react';
 import styled from 'styled-components';
-
+import { FaSearch } from 'react-icons/fa';
 const SearchbarHeader = styled.header`
   top: 0;
   left: 0;
@@ -42,7 +42,6 @@ const SearchButton = styled.button`
   width: 48px;
   height: 48px;
   border: 0;
-  //   background-image: url('https://image.flaticon.com/icons/svg/149/149852.svg');
   background-size: 40%;
   background-repeat: no-repeat;
   background-position: center;
@@ -50,37 +49,27 @@ const SearchButton = styled.button`
   transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   outline: none;
+  background-color: #004d7a;
+  color: white;
 
   &:hover {
     opacity: 1;
   }
 `;
 
-const Span = styled.span`
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  clip-path: inset(50%);
-  border: 0;
-`;
-
 const FormInput = styled.input`
   display: inline-block;
   width: 100%;
   font: inherit;
-  font-size: 20px;
+  font-size: 18px;
   border: none;
   outline: none;
   padding-left: 4px;
   padding-right: 4px;
-
+  padding: 10px;
   &::placeholder {
     font: inherit;
-    font-size: 18px;
+    // font-size: 18px;
   }
 `;
 
@@ -107,7 +96,7 @@ class Searchbar extends Component {
       <SearchbarHeader>
         <SearchForm onSubmit={this.handleSubmit}>
           <SearchButton type="submit">
-            o<Span>Search</Span>
+            <FaSearch size={16} />
           </SearchButton>
 
           <FormInput
