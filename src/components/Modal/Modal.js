@@ -1,4 +1,5 @@
-import { Children, Component } from 'react';
+import { Component } from 'react';
+import PropTypes from 'prop-types';
 
 import styled from 'styled-components';
 
@@ -29,30 +30,34 @@ class Modal extends Component {
     window.removeEventListener('keydown', this.handleKeyDown);
   }
 
-  // handleClickBackdrop = e => {
-  //   if (e.target === e.currentTarget) {
-  //       this.props.onClose();
-  //   }
-  // };
+  handleKeyDown = element => {
+    if (element.code === 'Escape') {
+      this.props.closeModal();
+    }
+  };
 
-  handleKeyDown = e => {
-    if (e.code === 'Escape') {
-      this.props.onClose();
+  handleBackdropClick = event => {
+    if (event.currentTarget === event.target) {
+      this.props.closeModal();
     }
   };
 
   render() {
-    const { modalImg, closeModal } = this.props;
+    const { lgImage, tags } = this.props;
     return (
-      <Overlay onClick={closeModal}>
+      <Overlay onClick={this.handleBackdropClick}>
         <ModalDiv>
-          <img src={modalImg} alt="largeImage" />
-
-          {Children}
+          <img src={lgImage} alt={tags} />
         </ModalDiv>
       </Overlay>
     );
   }
 }
+
+Modal.propTypes = {
+  closeModal: PropTypes.func.isRequired,
+  lgImage: PropTypes.string.isRequired,
+  tags: PropTypes.string.isRequired,
+};
 
 export default Modal;

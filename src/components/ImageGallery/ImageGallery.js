@@ -1,4 +1,6 @@
 import ImageGalleryItem from '../ImageGalleryItem/index';
+import PropTypes from 'prop-types';
+
 import styled from 'styled-components';
 
 const Gallery = styled.ul`
@@ -14,36 +16,27 @@ const Gallery = styled.ul`
   margin-right: auto;
 `;
 
-// const ImageGallery = ({ pictures }) => {
-//   return (
-//     <Gallery>
-//       {pictures.map(({ id, webformatURL, largeImageURL }) => (
-//         <ImageGalleryItem
-//           key={id}
-//           smallImage={webformatURL}
-//           largeImage={largeImageURL}
-//         />
-//       ))}
-//     </Gallery>
-//   );
-// };
+const ImageGallery = ({ images, handlePreview }) => {
+  const renderGallery = () =>
+    images.map(({ id, webformatURL, tags }) => (
+      <ImageGalleryItem
+        key={id}
+        tags={tags}
+        smImage={webformatURL}
+        onClick={() => handlePreview(id)}
+      />
+    ));
 
-const ImageGallery = ({ images, onClick }) => {
   return (
-    <>
-      <Gallery>
-        {images.map(({ id, webformatURL, largeImageURL, alt }) => (
-          <ImageGalleryItem
-            onClick={onClick}
-            key={id}
-            small={webformatURL}
-            large={largeImageURL}
-            alt={alt}
-          />
-        ))}
-      </Gallery>
-    </>
+    <div>
+      <Gallery>{images ? renderGallery() : null}</Gallery>
+    </div>
   );
+};
+
+ImageGallery.propTypes = {
+  images: PropTypes.array.isRequired,
+  handlePreview: PropTypes.func.isRequired,
 };
 
 export default ImageGallery;

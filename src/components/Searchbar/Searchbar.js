@@ -1,6 +1,9 @@
 import { Component } from 'react';
+import PropTypes from 'prop-types';
+
 import styled from 'styled-components';
 import { FaSearch } from 'react-icons/fa';
+
 const SearchbarHeader = styled.header`
   top: 0;
   left: 0;
@@ -78,39 +81,45 @@ class Searchbar extends Component {
     inputValue: '',
   };
 
+  handleInputChange = event => {
+    this.setState({ inputValue: event.currentTarget.value.toLowerCase() });
+  };
+
   handleSubmit = event => {
     event.preventDefault();
     if (this.state.inputValue.trim() === '') {
-      alert('Type something');
-      return;
+      return alert('Search field is empty!');
     }
-    this.props.onSubmit(this.state.inputValue);
-  };
-
-  handleInputChange = event => {
-    this.setState({ inputValue: event.currentTarget.value });
+    this.props.onSearch(this.state.inputValue);
+    this.setState({ inputValue: '' });
   };
 
   render() {
+    const { handleSubmit, handleInputChange } = this;
     return (
       <SearchbarHeader>
-        <SearchForm onSubmit={this.handleSubmit}>
+        <SearchForm onSubmit={handleSubmit}>
           <SearchButton type="submit">
             <FaSearch size={16} />
           </SearchButton>
 
           <FormInput
             type="text"
+            name="searchRequest"
             value={this.state.inputValue}
-            autocomplete="off"
+            onChange={handleInputChange}
+            autoComplete="off"
             autoFocus
             placeholder="Search images and photos"
-            onChange={this.handleInputChange}
           />
         </SearchForm>
       </SearchbarHeader>
     );
   }
 }
+
+Searchbar.propTypes = {
+  onSearch: PropTypes.func.isRequired,
+};
 
 export default Searchbar;

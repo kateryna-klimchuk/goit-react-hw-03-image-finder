@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 import styled from 'styled-components';
 
 const ListItem = styled.img`
@@ -11,12 +13,18 @@ const ListItem = styled.img`
   }
 `;
 
-const ImageGalleryItem = ({ large, small, alt, onClick }) => {
+const ImageGalleryItem = ({ smImage, tags, onClick }) => {
   return (
-    <li onClick={() => onClick(large)}>
-      <ListItem src={small} alt={alt} />
+    <li>
+      <ListItem src={smImage} alt={tags} onClick={onClick} />
     </li>
   );
+};
+
+ImageGalleryItem.propTypes = {
+  smImage: PropTypes.string.isRequired,
+  tags: PropTypes.string.isRequired,
+  onClick: PropTypes.func.isRequired,
 };
 
 export default ImageGalleryItem;

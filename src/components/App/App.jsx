@@ -1,10 +1,11 @@
-import Searchbar from 'components/Searchbar';
 import { Component } from 'react';
-
 import styled from 'styled-components';
+
+import Searchbar from 'components/Searchbar';
 import ImageGallery from 'components/ImageGallery';
 import Button from 'components/Button';
 import Modal from 'components/Modal';
+import Loader from 'components/Loader';
 import { fetching } from 'components/services/api';
 
 const Container = styled.div`
@@ -14,95 +15,111 @@ const Container = styled.div`
   padding-bottom: 24px;
 `;
 
-export class App extends Component {
+class App extends Component {
   state = {
-    page: 1,
+    inputValue: '',
     images: [],
-    largeImg: null,
+    page: 1,
     isLoading: false,
-    query: '',
+    showModal: null,
+    error: null,
   };
 
-  imagesMapper = imageList => {
-    return imageList.map(({ id, webformatURL, largeImageURL, tags }) => {
-      return { id, webformatURL, largeImageURL, alt: tags };
-    });
-  };
+  componentDidUpdate(_, prevState) {
+    const prevSearch = prevState.inputValue;
+    const currentSearch = this.state.inputValue;
+    const prevGalleryPage = prevState.page;
+    const currentGalleryPage = this.state.page;
 
-  async componentDidUpdate(_, prevState) {
-    const prevQuery = prevState.query;
-    const nextQuery = this.state.query;
-    const prevPage = prevState.page;
-    const nextPage = this.state.page;
-    const { query, page } = this.state;
-
-    if (prevQuery !== nextQuery) {
-      try {
-        this.setState({ isLoading: true, page: 1, images: [] });
-        const images = await fetching(query);
-        this.setState({
-          images: this.imagesMapper(images.data.hits),
-        });
-      } catch {
-        return alert("We're sorry, nothing is found");
-      } finally {
-        this.setState({ isLoading: false });
-      }
-    }
-
-    if (prevPage !== nextPage && nextPage !== 1) {
-      try {
-        this.setState({ isLoading: true });
-        const newImages = await fetching(query, page);
-        this.setState(prevState => ({
-          images: [
-            ...prevState.images,
-            ...this.imagesMapper(newImages.data.hits),
-          ],
-        }));
-      } catch {
-        return alert("We're sorry, nothing is found");
-      } finally {
-        this.setState({ isLoading: false });
-      }
+    if (
+      prevSearch !== currentSearch ||
+      prevGalleryPage !== currentGalleryPage
+    ) {
+      this.updateImages();
     }
   }
 
-  handleSearch = query => {
-    this.setState({ query });
+  updateImages() {
+    const { inputValue, page } = this.state;
+    this.setState({ isLoading: true });
+    setTimeout(() => {
+      try {
+        fetching(inputValue, page).then(data => {
+          if (!data.data.hits.length) {
+            return alert('There is no images found with that search request');
+          }
+          const mappedImages = data.data.hits.map(
+            ({ id, webformatURL, tags, largeImageURL }) => ({
+              id,
+              webformatURL,
+              tags,
+              largeImageURL,
+            })
+          );
+          this.setState({
+            images: [...this.state.images, ...mappedImages],
+          });
+        });
+      } catch (error) {
+        this.setState({ error });
+      } finally {
+        this.setState({ isLoading: false });
+      }
+    }, 1000);
+  }
+
+  handleSearchSubmit = inputValue => {
+    this.setState({
+      inputValue,
+      images: [],
+      page: 1,
+    });
   };
 
-  handleLoadMore = () => {
-    this.setState(({ page }) => ({ page: page + 1 }));
+  loadMore = () => {
+    console.log('loooooad');
+    this.setState({ isLoading: true });
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
+    // this.setState({ isLoading: false });
   };
 
-  handleModal = largeImg => {
-    this.setState({ largeImg });
+  showModalImage = id => {
+    const image = this.state.images.find(image => image.id === id);
+    this.setState({
+      showModal: {
+        largeImageURL: image.largeImageURL,
+        tags: image.tags,
+      },
+    });
   };
 
-  closeModal = () => {
-    this.setState({ largeImg: null });
+  closeModalImage = () => {
+    this.setState({ showModal: null });
   };
 
   render() {
-    const { images, isLoading, largeImg, query } = this.state;
+    const { images, isLoading, error, showModal } = this.state;
+    const { handleSearchSubmit, showModalImage, loadMore, closeModalImage } =
+      this;
     return (
       <Container>
-        <Searchbar onSubmit={this.handleSearch} />
-
-        {/* {isLoading && <Loader />} */}
+        <Searchbar onSearch={handleSearchSubmit} />
+        {error && alert(`Whoops, something went wrong: ${error.message}`)}
+        {isLoading && <Loader />}
         {images.length > 0 && (
           <>
-            <ImageGallery
-              images={this.state.images}
-              onClick={this.handleModal}
-            />
-            <Button onClick={this.handleLoadMore} />
+            <ImageGallery images={images} handlePreview={showModalImage} />
+            <Button loadMore={loadMore} />
           </>
         )}
-
-        {largeImg && (
-          <Modal largeImg={largeImg} alt={query} closeModal={this.closeModal} />
+        {showModal && (
+          <Modal
+            lgImage={showModal.largeImageURL}
+            tags={showModal.tags}
+            closeModal={closeModalImage}
+          />
         )}
       </Container>
     );
