@@ -1,12 +1,16 @@
 import { Component } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components';
+
+import { fetching } from 'components/services/api';
+import { mapPictures } from 'components/services/mapPictures';
 
 import Searchbar from 'components/Searchbar';
 import ImageGallery from 'components/ImageGallery';
 import Button from 'components/Button';
 import Modal from 'components/Modal';
 import Loader from 'components/Loader';
-import { fetching } from 'components/services/api';
 
 const Container = styled.div`
   display: grid;
@@ -28,13 +32,10 @@ class App extends Component {
   componentDidUpdate(_, prevState) {
     const prevSearch = prevState.inputValue;
     const currentSearch = this.state.inputValue;
-    const prevGalleryPage = prevState.page;
-    const currentGalleryPage = this.state.page;
+    const prevPage = prevState.page;
+    const currentPage = this.state.page;
 
-    if (
-      prevSearch !== currentSearch ||
-      prevGalleryPage !== currentGalleryPage
-    ) {
+    if (prevSearch !== currentSearch || prevPage !== currentPage) {
       this.updateImages();
     }
   }
@@ -44,20 +45,15 @@ class App extends Component {
     this.setState({ isLoading: true });
     setTimeout(() => {
       try {
-        fetching(inputValue, page).then(data => {
-          if (!data.data.hits.length) {
-            return alert('There is no images found with that search request');
+        fetching(inputValue, page).then(res => {
+          if (!res.data.hits.length) {
+            return toast.error(
+              'There is no images with this request, please, try again'
+            );
           }
-          const mappedImages = data.data.hits.map(
-            ({ id, webformatURL, tags, largeImageURL }) => ({
-              id,
-              webformatURL,
-              tags,
-              largeImageURL,
-            })
-          );
+          const pictures = mapPictures(res.data.hits);
           this.setState({
-            images: [...this.state.images, ...mappedImages],
+            images: [...this.state.images, ...pictures],
           });
         });
       } catch (error) {
@@ -77,12 +73,9 @@ class App extends Component {
   };
 
   loadMore = () => {
-    console.log('loooooad');
-    this.setState({ isLoading: true });
     this.setState(prevState => ({
       page: prevState.page + 1,
     }));
-    // this.setState({ isLoading: false });
   };
 
   showModalImage = id => {
@@ -106,7 +99,8 @@ class App extends Component {
     return (
       <Container>
         <Searchbar onSearch={handleSearchSubmit} />
-        {error && alert(`Whoops, something went wrong: ${error.message}`)}
+        {error &&
+          toast.warning(`Ooops, something went wrong: ${error.message}`)}
         {isLoading && <Loader />}
         {images.length > 0 && (
           <>
@@ -121,6 +115,18 @@ class App extends Component {
             closeModal={closeModalImage}
           />
         )}
+
+        <ToastContainer
+          position="top-right"
+          autoClose={4000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       </Container>
     );
   }

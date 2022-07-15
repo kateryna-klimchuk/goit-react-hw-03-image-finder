@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import PropTypes from 'prop-types';
+import { toast } from 'react-toastify';
 
 import styled from 'styled-components';
 import { FaSearch } from 'react-icons/fa';
@@ -86,16 +87,19 @@ class Searchbar extends Component {
   };
 
   handleSubmit = event => {
+    const { inputValue } = this.state;
     event.preventDefault();
-    if (this.state.inputValue.trim() === '') {
-      return alert('Search field is empty!');
+    if (inputValue.trim() === '') {
+      return toast.warning('Search field is empty!');
     }
-    this.props.onSearch(this.state.inputValue);
+    this.props.onSearch(inputValue);
     this.setState({ inputValue: '' });
   };
 
   render() {
     const { handleSubmit, handleInputChange } = this;
+    const { inputValue } = this.state;
+
     return (
       <SearchbarHeader>
         <SearchForm onSubmit={handleSubmit}>
@@ -106,7 +110,7 @@ class Searchbar extends Component {
           <FormInput
             type="text"
             name="searchRequest"
-            value={this.state.inputValue}
+            value={inputValue}
             onChange={handleInputChange}
             autoComplete="off"
             autoFocus
