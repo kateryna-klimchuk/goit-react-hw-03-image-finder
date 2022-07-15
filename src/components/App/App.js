@@ -1,23 +1,15 @@
 import { Component } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import styled from 'styled-components';
-
-import { fetching } from 'components/services/api';
-import { mapPictures } from 'components/services/mapPictures';
+import { Container } from './App.styled';
+import { fetchImages } from 'services/api';
+import { mapPictures } from 'services/mapPictures';
 
 import Searchbar from 'components/Searchbar';
 import ImageGallery from 'components/ImageGallery';
 import Button from 'components/Button';
 import Modal from 'components/Modal';
 import Loader from 'components/Loader';
-
-const Container = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-gap: 16px;
-  padding-bottom: 24px;
-`;
 
 class App extends Component {
   state = {
@@ -40,28 +32,26 @@ class App extends Component {
     }
   }
 
-  updateImages() {
+  async updateImages() {
     const { inputValue, page } = this.state;
     this.setState({ isLoading: true });
-    setTimeout(() => {
-      try {
-        fetching(inputValue, page).then(res => {
-          if (!res.data.hits.length) {
-            return toast.error(
-              'There is no images with this request, please, try again'
-            );
-          }
-          const pictures = mapPictures(res.data.hits);
-          this.setState({
-            images: [...this.state.images, ...pictures],
-          });
+    try {
+      await fetchImages(inputValue, page).then(res => {
+        if (!res.data.hits.length) {
+          return toast.error(
+            'There is no images with this request, please, try again'
+          );
+        }
+        const newImages = mapPictures(res.data.hits);
+        this.setState({
+          images: [...this.state.images, ...newImages],
         });
-      } catch (error) {
-        this.setState({ error });
-      } finally {
-        this.setState({ isLoading: false });
-      }
-    }, 1000);
+      });
+    } catch (error) {
+      this.setState({ error });
+    } finally {
+      this.setState({ isLoading: false });
+    }
   }
 
   handleSearchSubmit = inputValue => {
@@ -78,8 +68,10 @@ class App extends Component {
     }));
   };
 
-  showModalImage = id => {
-    const image = this.state.images.find(image => image.id === id);
+  showModalImage = largeImageURL => {
+    const image = this.state.images.find(
+      image => image.largeImageURL === largeImageURL
+    );
     this.setState({
       showModal: {
         largeImageURL: image.largeImageURL,
@@ -104,7 +96,7 @@ class App extends Component {
         {isLoading && <Loader />}
         {images.length > 0 && (
           <>
-            <ImageGallery images={images} handlePreview={showModalImage} />
+            <ImageGallery images={images} openModal={showModalImage} />
             <Button loadMore={loadMore} />
           </>
         )}
